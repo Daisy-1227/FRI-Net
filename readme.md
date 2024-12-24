@@ -16,7 +16,8 @@ This repository provides code, data and pretrained models for **FRI-Net**.
 [[Paper](https://arxiv.org/pdf/2407.10687)]   
 
 ## News
-
+* We have updated the model code.
+* We will release the remaining code in a few days!
 ## Preparation
 
 ## Environment Setup
@@ -27,7 +28,7 @@ This repository provides code, data and pretrained models for **FRI-Net**.
 
 ## Citation
 If you find FRI-Net useful in your research, please cite our paper:
-```
+```BibTex
 @inproceedings{xu2024fri,
     title={FRI-Net: Floorplan Reconstruction via Room-wise Implicit Representation},
     author={Honghao Xu and Juzhan Xu and Zeyu Huang and Pengfei Xu and Hui Huang and Ruizhen Hu},
