@@ -3,13 +3,14 @@ import torch
 import torch.nn.functional as F
 from torch import nn, Tensor
 from models.encoder import room_wise_encoder
-from models.decoder import room_wise_decoder # diagonal respect --- add a loss term to enforce learning of diagnoal lines
+from models.decoder_bk import room_wise_decoder # diagonal respect --- add a loss term to enforce learning of diagnoal lines
 from models.occ_matcher import build_matcher
 
 
 class FRINet(nn.Module):
     def __init__(self, args):
         super().__init__()
+        # 定义Encoder and Decoder
         self.phase = args.phase
         self.room_wise_encoder = room_wise_encoder(args=args)
         if self.phase == 0:
@@ -72,8 +73,10 @@ class SetCriterion(nn.Module):
     def forward(self, outputs, targets):
 
         match_indices = self.matcher(outputs, targets)
+
         shape_occ = outputs['pred_occ']
         bs = shape_occ.shape[0]
+
         idx = self._get_src_permutation_idx(match_indices)
         target_occ_o = torch.cat([t[J] for t, (_, J) in zip(targets['occ'], match_indices)])
         target_occ = torch.full(shape_occ.shape, 0, dtype=torch.float32, device=shape_occ.device)
