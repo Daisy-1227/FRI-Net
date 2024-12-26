@@ -3,7 +3,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn, Tensor
 from models.encoder import room_wise_encoder
-from models.decoder_bk import room_wise_decoder # diagonal respect --- add a loss term to enforce learning of diagnoal lines
+from models.decoder import room_wise_decoder
 from models.occ_matcher import build_matcher
 
 

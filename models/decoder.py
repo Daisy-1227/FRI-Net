@@ -57,11 +57,6 @@ class room_wise_decoder(nn.Module):
         nn.init.normal_(self.binary_matrix, mean=0.0, std=0.02)
         nn.init.normal_(self.merge_matrix, mean=1e-5, std=0.02)
 
-    # def update_weights(self):
-    #     diagonal_binary_matrix = torch.zeros((self.num_diagnoal_line, self.num_convex)).cuda()
-    #     diagonal_binary_matrix = nn.Parameter(diagonal_binary_matrix)
-    #     nn.init.normal_(diagonal_binary_matrix, mean=0.0, std=0.02)
-    #     self.binary_matrix = nn.Parameter(torch.cat([self.binary_matrix, diagonal_binary_matrix]))
 
     def update_weights(self):
         diagonal_binary_matrix = torch.zeros((self.num_diagnoal_line, self.num_convex)).cuda()
@@ -90,9 +85,6 @@ class room_wise_decoder(nn.Module):
         horizontal_param_ = self.horizontal_mlp(room_latent.view(num_latent, -1)).view(num_latent, 2, self.num_horizontal_line)
         vertical_param_ = self.vertical_mlp(room_latent.view(num_latent, -1)).view(num_latent, 2, self.num_vertical_line)
         
-        # horizontal_param_ = self.horizontal_mlp(room_latent.mean(axis=1)).view(num_latent, 2, self.num_horizontal_line)
-        # vertical_param_ = self.vertical_mlp(room_latent.mean(axis=1)).view(num_latent, 2, self.num_vertical_line)
-        
         horizontal_param = torch.zeros(num_latent, 3, self.num_horizontal_line).cuda()
         vertical_param = torch.zeros(num_latent, 3, self.num_vertical_line).cuda()
         horizontal_param[:, :1, :] = horizontal_param_[:, :1, :]
@@ -105,7 +97,6 @@ class room_wise_decoder(nn.Module):
             line_param = torch.cat((horizontal_param, vertical_param), dim=2)
             diagnoal_param = None
         else:
-            # line_param = torch.cat((horizontal_param, vertical_param), dim=2)
             diagnoal_param = self.diagonal_mlp(room_latent.view(num_latent, -1)).view(num_latent, 3, self.num_diagnoal_line)
             line_param = torch.cat([horizontal_param, vertical_param, diagnoal_param], dim=2)
         
@@ -161,14 +152,11 @@ class room_wise_decoder(nn.Module):
             diagonal_h1 = torch.matmul(query, diagnoal_param)
             diagonal_h1 = torch.clamp(diagonal_h1, min=0)
             diagonal_h2 = torch.matmul(diagonal_h1, self.binary_matrix[self.num_horizontal_line+self.num_vertical_line:, :])
-            # diagonal_h2 = torch.clamp(1 - diagonal_h2, min=0, max=1)
             diagnoal_h3 = torch.min(diagonal_h2, dim=2, keepdim=True)[0]
 
 
             h2 = torch.cat([h2, diagonal_h2], dim=2)
 
-            # h3 = torch.matmul(h2, self.merge_matrix)
-            # h3 = torch.clamp(h3, min=0, max=1)
             h3 = torch.min(h2, dim=2, keepdim=True)[0]
             diagnoal_h3 = diagnoal_h3.reshape(bs, num_room, num_query, 1)
             axis_h3 = axis_h3.reshape(bs, num_room, num_query, 1)
@@ -184,6 +172,8 @@ class room_wise_decoder(nn.Module):
         outputs['pred_occ'] = h3
         outputs['axis_occ'] = axis_h3
         outputs['non_axis_occ'] = diagnoal_h3
+        outputs['binary_weights'] = self.binary_matrix
+        outputs['merge_weights'] = self.merge_matrix
         return outputs
 
 

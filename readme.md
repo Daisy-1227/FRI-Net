@@ -17,16 +17,61 @@ This repository provides code, data and pretrained models for **FRI-Net**.
 
 ## News
 * We have updated the model code.
-* We will release the remaining code in a few days!
+* We have updated the evaluation and the training codes.
+
 ## Preparation
 
-## Environment Setup
+### Environment setup
+Since our code is built upon [Roomformer](https://github.com/ywyue/RoomFormer), we follow the environment setup from Roomformer.
+```bash
+# Create conda environment
+conda create -n frinet python=3.8
+conda activate frinet
+
+# install pytorch and other requried packages
+pip install torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
+pip install -r requirements.txt
+
+# Compile the defromable-attention models from deformable-DETR
+cd models/ops
+sh make.sh
+```
+### Data preparation
+
+We directly provide the processed data and pretrained checkpoints, please download [them](https://drive.google.com/file/d/1TgqNB59ZOqdTSJieNoeHR1XvwEfsuIzB/view) and organize them as following:
+
+```
+FRI-Net/
+└── data/
+    ├── annotations/
+    ├── input/
+    ├── occ/
+    ├── ...
+└── checkpoints/
+    ├── pretrained_ckpt.pth
+    ├── pretrained_room_wise_encoder.pth
+```
+
+For details on data preprocessing, please refer to [datasets](datasets).
 
 ## Evaluation
+Please run the following command to evaluate the model on Structured3D test set:
+```shell
+python eval_stru3d.py --checkpoint ./checkpoints/pretrained_ckpt.pth
+```
+You can get the visualized results on the [results](results).
 
 ## Training
+To train FRI-Net on Structured 3D, please run the following command: 
+```shell
+python train_stru3d.py --phase=0 --job_name=train_stru3d
+python train_stru3d.py --phase=1 --job_name=train_stru3d
+python train_stru3d.py --phase=2 --job_name=train_stru3d
+```
 
 ## Citation
+If you have any question about this repo, feel free to drop me an email littledaisy20001227@gmail.com
+
 If you find FRI-Net useful in your research, please cite our paper:
 ```BibTex
 @inproceedings{xu2024fri,
@@ -45,4 +90,4 @@ We thank for the following open source projects:
 * [BSP-Net](https://github.com/czq142857/BSP-NET-pytorch)
 * [DETR](https://github.com/facebookresearch/detr)
 * [Deformable-DETR](https://github.com/fundamentalvision/Deformable-DETR)
-* [HEAT](https://github.com/woodfrog/heat)
+* [Structured3D](https://github.com/bertjiazheng/Structured3D)

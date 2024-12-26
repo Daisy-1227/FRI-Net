@@ -125,7 +125,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
         if self.using_room_attn:
             self.room_attn = nn.MultiheadAttention(d_model, n_heads, dropout=dropout)
             self.num_queries_per_poly = num_queries // num_polys
-            self.attention_mask = torch.ones((num_queries, num_queries), dtype=torch.bool).cuda()
+            self.attention_mask = torch.ones((num_queries, num_queries), dtype=torch.bool)
             for i in range(num_polys):
                 self.attention_mask[i * self.num_queries_per_poly:(i + 1) * self.num_queries_per_poly,
                 i * self.num_queries_per_poly:(i + 1) * self.num_queries_per_poly] = False
@@ -149,6 +149,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
         tgt = tgt + self.dropout2(tgt2)
 
         if self.using_room_attn:
+            self.attention_mask = self.attention_mask.to(tgt.device)
             room_src2 = self.room_attn(q.transpose(0, 1), k.transpose(0, 1), value=tgt.transpose(0, 1), attn_mask=self.attention_mask)[0].transpose(0, 1)
             tgt = tgt + self.dropout1(room_src2)
 
