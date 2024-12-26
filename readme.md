@@ -43,10 +43,11 @@ We directly provide the processed data and pretrained checkpoints, please downlo
 ```
 FRI-Net/
 └── data/
-    ├── annotations/
-    ├── input/
-    ├── occ/
-    ├── ...
+    └── stru3d/
+        ├── annotations/
+        ├── input/
+        ├── occ/
+        ├── ...
 └── checkpoints/
     ├── pretrained_ckpt.pth
     ├── pretrained_room_wise_encoder.pth
