@@ -1,4 +1,7 @@
 setup.py
+/mnt/d/honghao-131/project/FRI-Net/FRI-Net/FRI-Net/models/ops/src/vision.cpp
+/mnt/d/honghao-131/project/FRI-Net/FRI-Net/FRI-Net/models/ops/src/cpu/ms_deform_attn_cpu.cpp
+/mnt/d/honghao-131/project/FRI-Net/FRI-Net/FRI-Net/models/ops/src/cuda/ms_deform_attn_cuda.cu
 /mnt/d/projects/FRI-Net/FRI-Net/FRI-Net/models/ops/src/vision.cpp
 /mnt/d/projects/FRI-Net/FRI-Net/FRI-Net/models/ops/src/cpu/ms_deform_attn_cpu.cpp
 /mnt/d/projects/FRI-Net/FRI-Net/FRI-Net/models/ops/src/cuda/ms_deform_attn_cuda.cu

@@ -7,6 +7,8 @@ from shapely.geometry import LineString
 from shapely.ops import unary_union
 from shapely.geometry.polygon import orient
 import sys
+from rdp import rdp
+import math
 
 
 def is_clockwise(points):
@@ -306,6 +308,86 @@ def refine_corners(polygon_list):
 
     return room_polys
 
+def get_angle(p1, p2, p3):
+    v1 = (p1[0] - p2[0], p1[1] - p2[1])
+    v2 = (p3[0] - p2[0], p3[1] - p2[1])
+    dot = v1[0]*v2[0] + v1[1]*v2[1]
+    len_v1 = math.hypot(*v1)
+    len_v2 = math.hypot(*v2)
+    if len_v1 * len_v2 == 0:
+        return 180
+    cos_theta = dot / (len_v1 * len_v2)
+    angle = math.degrees(math.acos(max(-1.0, min(1.0, cos_theta))))
+    return angle
+
+def remove_close_points(points, min_dist=8, replace_with_midpoint=False):
+    result = []
+    i = 0
+    n = len(points)
+    while i < n:
+        current = points[i]
+        if i < n - 1:
+            next_p = points[i + 1]
+            dist = math.hypot(current[0] - next_p[0], current[1] - next_p[1])
+            if dist < min_dist:
+                if replace_with_midpoint:
+                    mid = ((current[0] + next_p[0]) / 2, (current[1] + next_p[1]) / 2)
+                    result.append(mid)
+                else:
+                    result.append(current)
+                i += 2
+                continue
+        result.append(current)
+        i += 1
+    return result
+
+def merge_consecutive_points(points, max_dist=0.15):
+    result = []
+    i = 0
+    n = len(points)
+    while i < n:
+        cluster = [points[i]]
+        j = i + 1
+        while j < n:
+            last = cluster[-1]
+            curr = points[j]
+            dist = math.hypot(last[0] - curr[0], last[1] - curr[1])
+            if dist < max_dist:
+                cluster.append(curr)
+                j += 1
+            else:
+                break
+        x_avg = sum(p[0] for p in cluster) / len(cluster)
+        y_avg = sum(p[1] for p in cluster) / len(cluster)
+        result.append((x_avg, y_avg))
+        i = j
+    return result
+
+def remove_smooth_points(points, angle_threshold=170, min_segment_length=0.1):   
+    n = len(points)
+    result = []
+    for i in range(n):
+        prev_idx = (i - 1) % n
+        next_idx = (i + 1) % n
+        p_prev = points[prev_idx]
+        p_curr = points[i]
+        p_next = points[next_idx]
+
+        len_prev = math.hypot(p_prev[0]-p_curr[0], p_prev[1]-p_curr[1])
+        len_next = math.hypot(p_next[0]-p_curr[0], p_next[1]-p_curr[1])
+
+        if len_prev < min_segment_length or len_next < min_segment_length:
+            result.append(p_curr)
+            continue
+
+        angle = get_angle(p_prev, p_curr, p_next)
+
+        if angle >= angle_threshold:
+            continue
+        else:
+            result.append(p_curr)
+    return result
+
 def postprocess(polygon_list):
     # First fix the multi_polygon
     polygon_list = remove_multi_polygon(polygon_list)
@@ -335,3 +417,14 @@ def postprocess(polygon_list):
         room_polys.append(room)
     
     return room_polys
+
+def postprocess_scenecad(polygon_list):
+    ## assume the number of the room in scenecad is 1
+    polygon = polygon_list[0]
+    room_corners = np.array(polygon.exterior.coords, dtype=np.int32)[:-1]
+    simplified_corners = rdp(room_corners, epsilon=1.0)        
+    simplified_corners = remove_close_points(simplified_corners, min_dist=8)
+    simplified_corners = merge_consecutive_points(simplified_corners, max_dist=8)
+    simplified_corners = remove_smooth_points(simplified_corners, angle_threshold=150, min_segment_length=5)
+    simplified_corners = np.array(simplified_corners).astype(np.int32)
+    return simplified_corners

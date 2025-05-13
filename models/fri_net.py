@@ -39,25 +39,31 @@ class SetCriterion(nn.Module):
         super().__init__()
         self.phase = args.phase
         self.matcher = matcher
+        self.dataset_name = args.dataset_name
         if self.phase == 0 or self.phase == 1:
             def network_loss(G, point_value, cw2, cw3):
-                loss_occ = torch.mean((point_value - G) ** 2)
+                loss = 0
+                loss_occ = dict()
+                for key in G.keys():
+                    loss_occ[key] = torch.mean((point_value - G[key]) ** 2)
+                    loss += loss_occ[key]
                 loss_weight = torch.sum(torch.abs(cw3 - 1)) + (
                     torch.sum(torch.clamp(cw2 - 1, min=0) - torch.clamp(cw2, max=0)))
-                loss = loss_occ + loss_weight
+                loss += loss_weight
                 return loss, loss_occ
             
             self.loss = network_loss
         else:
             def network_loss(G, point_value, cw2, cw3):
-                loss_occ = torch.mean(
-                    (1 - point_value) * (1 - torch.clamp(G, max=1)) + point_value * (torch.clamp(G, min=0)))
-            
+                loss = 0
+                loss_occ = dict()
+                for key in G.keys():
+                    loss_occ[key] = torch.mean(
+                    (1 - point_value) * (1 - torch.clamp(G[key], max=1)) + point_value * (torch.clamp(G[key], min=0)))
+                    loss += loss_occ[key]
                 loss_weight = torch.sum((cw2 < 0.01).float() * torch.abs(cw2)) + torch.sum(
                     (cw2 >= 0.01).float() * torch.abs(cw2 - 1))
-
-                loss = loss_occ + loss_weight
-                
+                loss += loss_weight
                 return loss, loss_occ
 
             self.loss = network_loss
@@ -74,15 +80,28 @@ class SetCriterion(nn.Module):
 
         match_indices = self.matcher(outputs, targets)
 
-        shape_occ = outputs['pred_occ']
-        bs = shape_occ.shape[0]
+        if self.dataset_name == 'stru3d':
+            pred_occ = {
+                "shape_occ": outputs['pred_occ']
+            }
+        else:
+            if self.phase == 0:
+                pred_occ = {
+                    "shape_occ": outputs['pred_occ']
+                }
+            else:
+                pred_occ = {
+                    "shape_occ": outputs['pred_occ'],
+                    "axis_occ": outputs['axis_occ'],
+                    "non_axis_occ": outputs['non_axis_occ'],
+                }
 
         idx = self._get_src_permutation_idx(match_indices)
         target_occ_o = torch.cat([t[J] for t, (_, J) in zip(targets['occ'], match_indices)])
-        target_occ = torch.full(shape_occ.shape, 0, dtype=torch.float32, device=shape_occ.device)
+        target_occ = torch.full(pred_occ['shape_occ'].shape, 0, dtype=torch.float32, device=pred_occ['shape_occ'].device)
         target_occ[idx] = target_occ_o
 
-        loss_value, loss_occ = self.loss(shape_occ, target_occ, outputs['binary_weights'], outputs['merge_weights'])
+        loss_value, loss_occ = self.loss(pred_occ, target_occ, outputs['binary_weights'], outputs['merge_weights'])
 
         loss = dict()
         loss['loss_occ'] = loss_occ
