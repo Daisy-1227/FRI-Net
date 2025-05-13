@@ -17,7 +17,8 @@ This repository provides code, data and pretrained models for **FRI-Net**.
 
 ## News
 * We have updated the model code.
-* We have updated the evaluation and the training codes.
+* We have updated the evaluation and the training codes on stru3d.
+* We have updated the evaluation and the training codes on scenecad.
 
 ## Preparation
 
@@ -38,7 +39,7 @@ sh make.sh
 ```
 ### Data preparation
 
-We directly provide the processed data and pretrained checkpoints, please download [them](https://drive.google.com/file/d/1TgqNB59ZOqdTSJieNoeHR1XvwEfsuIzB/view) and organize them as following:
+We directly provide the processed data and pretrained checkpoints, please download [them](https://drive.google.com/file/d/1TgqNB59ZOqdTSJieNoeHR1XvwEfsuIzB/view) and organize them as following: (we have provide the processed scenecad data and pretrained checkpoint [here](https://drive.google.com/file/d/1rncl4e6KN0ZbkvyRjIuOgdaoIGsrwwQg/view?usp=sharing))
 
 ```
 FRI-Net/
@@ -48,8 +49,14 @@ FRI-Net/
         ├── input/
         ├── occ/
         ├── ...
+    └── scenecad/
+        ├── annotations/
+        ├── input/
+        ├── occ/
+        ├── ...
 └── checkpoints/
     ├── pretrained_ckpt.pth
+    ├── pretrained_scenecad_ckpt.pth
     ├── pretrained_room_wise_encoder.pth
 ```
 
@@ -60,6 +67,10 @@ Please run the following command to evaluate the model on Structured3D test set:
 ```shell
 python eval_stru3d.py --checkpoint ./checkpoints/pretrained_ckpt.pth
 ```
+Please run the following command to evaluate the model on Scenecad val set:
+```shell
+python eval_scenecad.py --checkpoint ./checkpoints/pretrained_scenecad_ckpt.pth
+```
 You can get the visualized results on the [results](results).
 
 ## Training
@@ -68,6 +79,13 @@ To train FRI-Net on Structured 3D, please run the following command:
 python train_stru3d.py --phase=0 --job_name=train_stru3d
 python train_stru3d.py --phase=1 --job_name=train_stru3d
 python train_stru3d.py --phase=2 --job_name=train_stru3d
+```
+
+To train FRI-Net on SceneCAD, please run the following command: 
+```shell
+python train_scenecad.py --phase=0 --job_name=train_scenecad
+python train_scenecad.py --phase=1 --job_name=train_scenecad
+python train_scenecad.py --phase=2 --job_name=train_scenecad
 ```
 
 ## Citation
