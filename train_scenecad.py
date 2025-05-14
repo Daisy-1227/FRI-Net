@@ -309,7 +309,7 @@ def train_one_epoch(model, criterion, data_loader, optimizer, epoch, args):
         optimizer.step()
 
         metric_logger.update(loss=loss)
-        # metric_logger.update(loss_occ=loss_occ)
+        metric_logger.update(loss_occ=loss_occ['shape_occ'])
         metric_logger.update(lr=optimizer.param_groups[0]["lr"])
 
     print("Averaged stats:", metric_logger)
@@ -339,7 +339,7 @@ def eval(model, criterion, data_loader, epoch, args):
         loss, loss_occ = loss_dict['loss'], loss_dict['loss_occ']
 
         metric_logger.update(loss=loss)
-        # metric_logger.update(loss_occ=loss_occ)
+        metric_logger.update(loss_occ=loss_occ['shape_occ'])
 
     print("Averaged stats:", metric_logger)
 
